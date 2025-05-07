@@ -5,6 +5,7 @@ import { useState } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
+import { Navbar } from "./Navbar";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -48,41 +49,35 @@ export function PDFView() {
   }
 
   return (
-    <div
-      className="bg-red-100"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      {file ? (
-        <>
-          <Document
-            file={file}
-            onLoadSuccess={onDocumentLoadSuccess}
-            className="flex flex-col justify-evenly items-center"
-          >
-            {Array.from(new Array(numPages), (_, index) => {
-              return (
-                <Page
-                  key={index + 1}
-                  pageNumber={index + 1}
-                  width={870}
-                  className="mt-8"
-                />
-              );
-            })}
-          </Document>
-          <p>
-            Page {pageNumber} of {numPages}
-          </p>
-        </>
-      ) : (
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={handleFileChange}
-        />
-      )}
+    <div className="flex-1 overflow-hidden flex flex-col bg-red-100">
+      <div className="text-center p-4 bg-red-100">PDF Name</div>
+
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {file ? (
+          <div className="flex-1 overflow-hidden bg-red-100 flex flex-col items-center">
+            <Document
+              file={file}
+              onLoadSuccess={onDocumentLoadSuccess}
+              className="flex-1 overflow-y-auto flex flex-col items-center gap-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-red-100"
+            >
+              {Array.from(new Array(numPages), (_, index) => (
+                <Page key={index + 1} pageNumber={index + 1} width={820} />
+              ))}
+            </Document>
+          </div>
+        ) : (
+          <div className="flex-1 flex justify-center items-center bg-red-100">
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between p-6 bg-red-100"></div>
+      <Navbar />
     </div>
   );
 }
