@@ -5,7 +5,7 @@ import { useState } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
-import { Navbar } from "./Navbar";
+import { PDFControls } from "./PDFControls";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -49,16 +49,16 @@ export function PDFView() {
   }
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col bg-red-100">
-      <div className="text-center p-4 bg-red-100">PDF Name</div>
+    <div className="flex-1 overflow-hidden flex flex-col bg-red-100/40">
+      <div className="text-center p-4 bg-red-100/40">PDF Name</div>
 
       <div className="flex-1 overflow-hidden flex flex-col">
         {file ? (
-          <div className="flex-1 overflow-hidden bg-red-100 flex flex-col items-center">
+          <div className="flex-1 overflow-hidden bg-red-100/40 flex flex-col items-center">
             <Document
               file={file}
               onLoadSuccess={onDocumentLoadSuccess}
-              className="flex-1 overflow-y-auto flex flex-col items-center gap-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-red-100"
+              className="flex-1 overflow-y-auto flex flex-col items-center gap-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-red-100/40"
             >
               {Array.from(new Array(numPages), (_, index) => (
                 <Page key={index + 1} pageNumber={index + 1} width={820} />
@@ -66,7 +66,7 @@ export function PDFView() {
             </Document>
           </div>
         ) : (
-          <div className="flex-1 flex justify-center items-center bg-red-100">
+          <div className="flex-1 flex justify-center items-center bg-red-100/40">
             <input
               type="file"
               accept="application/pdf"
@@ -76,8 +76,8 @@ export function PDFView() {
         )}
       </div>
 
-      <div className="flex items-center justify-between p-6 bg-red-100"></div>
-      <Navbar />
+      <div className="flex items-center justify-between p-6 bg-red-100/40"></div>
+      <PDFControls />
     </div>
   );
 }
