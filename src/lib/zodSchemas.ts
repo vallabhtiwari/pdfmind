@@ -8,3 +8,7 @@ export const pdfFileSchema = z.object({
     })
     .refine((file) => file.name.endsWith(".pdf"), { message: "Invalid PDF" }),
 });
+
+export const pageNumSchema = z.number().refine((value) => {
+  return value > 0;
+});

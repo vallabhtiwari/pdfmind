@@ -1,26 +1,47 @@
+import { pageNumSchema } from "@/lib/zodSchemas";
+import { usePDFStore } from "@/store/pdfStrore";
 import { ChevronDown, ChevronUp, ZoomIn, ZoomOut } from "lucide-react";
 
 export function PDFControls() {
-  const value = "2";
+  const { pageNum, numPages, setPageNum } = usePDFStore();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const parsedNum = pageNumSchema.safeParse(Number(e.target.value));
+    if (parsedNum.success) {
+      if (parsedNum.data < numPages) setPageNum(parsedNum.data);
+    }
+  };
+  const goToNextPage = () => {
+    if (pageNum && numPages) {
+      if (pageNum < numPages) setPageNum(pageNum + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (pageNum) {
+      if (pageNum > 1) setPageNum(pageNum - 1);
+    }
+  };
+
   return (
     <div className="bg-amber-50 flex justify-between items-center p-4 h-18 border-r border-gray-200">
       <div className="flex justify-evenly items-center gap-2">
         <div className="cursor-pointer">
-          <ChevronUp />
+          <ChevronUp onClick={goToPrevPage} />
         </div>
         <div>
           <input
-            type="text"
+            type="string"
             className="bg-white border border-gray-400 text-xl text-center px-1 rounded-sm outline-none"
-            style={{ width: `${Math.max(2, value.length) + 1}ch` }}
-            value={value}
+            style={{ width: `${Math.max(2, `${pageNum}`.length) + 1}ch` }}
+            onChange={handleChange}
+            value={pageNum}
           />
         </div>
         <div className="">
-          <span>/ 10</span>
+          <span>/ {numPages}</span>
         </div>
         <div className="cursor-pointer">
-          <ChevronDown />
+          <ChevronDown onClick={goToNextPage} />
         </div>
       </div>
       <div className="flex justify-evenly items-center gap-1">
