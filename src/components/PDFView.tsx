@@ -18,6 +18,7 @@ export function PDFView() {
     fileName,
     numPages,
     pageNum,
+    zoom,
     setPdf,
     setPdfName,
     setNumPages,
@@ -89,14 +90,14 @@ export function PDFView() {
               <List
                 height={listHeight}
                 itemCount={numPages}
-                itemSize={listHeight + 450}
+                itemSize={listHeight + 450 * zoom}
                 width={860}
                 ref={listRef}
                 className="scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-red-100/40"
               >
                 {({ index, style }) => (
                   <div style={style}>
-                    <Page pageNumber={index + 1} width={840} />
+                    <Page pageNumber={index + 1} width={840 * zoom} />
                   </div>
                 )}
               </List>
