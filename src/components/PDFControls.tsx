@@ -19,20 +19,16 @@ export function PDFControls() {
     }
   };
   const goToNextPage = () => {
-    if (pageNum && numPages) {
-      if (pageNum <= numPages) {
-        setPageNum(pageNum + 1);
-        setInputValue((pageNum + 1).toString());
-      }
+    if (pageNum <= numPages) {
+      setPageNum(pageNum + 1);
+      setInputValue((pageNum + 1).toString());
     }
   };
 
   const goToPrevPage = () => {
-    if (pageNum) {
-      if (pageNum > 1) {
-        setPageNum(pageNum - 1);
-        setInputValue((pageNum - 1).toString());
-      }
+    if (pageNum > 1) {
+      setPageNum(pageNum - 1);
+      setInputValue((pageNum - 1).toString());
     }
   };
 
