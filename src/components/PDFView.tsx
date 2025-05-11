@@ -28,28 +28,34 @@ export function PDFView() {
   const listRef = useRef<List>(null);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragging(true);
+    if (!file) {
+      e.preventDefault();
+      setDragging(true);
+    }
   };
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragging(false);
+    if (!file) {
+      e.preventDefault();
+      setDragging(false);
+    }
   };
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragging(false);
-    setUploading(true);
+    if (!file) {
+      e.preventDefault();
+      setDragging(false);
+      setUploading(true);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const parsedFile = pdfFileSchema.safeParse({
-        file: e.dataTransfer.files[0],
-      });
-      if (parsedFile.success) {
-        setPdf(parsedFile.data.file);
-        setPdfName(parsedFile.data.file.name);
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        const parsedFile = pdfFileSchema.safeParse({
+          file: e.dataTransfer.files[0],
+        });
+        if (parsedFile.success) {
+          setPdf(parsedFile.data.file);
+          setPdfName(parsedFile.data.file.name);
+        }
       }
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   function onDocumentLoadSuccess({
@@ -77,9 +83,11 @@ export function PDFView() {
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col bg-red-100/40">
-      <div className="text-center p-4 bg-red-100/40">{fileName}</div>
+      <div className="text-center p-4 bg-red-100/40 font-mono">
+        {fileName?.trim()}
+      </div>
       <div
-        className="flex-1 overflow-hidden flex flex-col"
+        className="flex-1  overflow-hidden flex flex-col"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -105,7 +113,7 @@ export function PDFView() {
           </div>
         ) : (
           <div
-            className={`flex-1 bg-red-100/40 flex flex-col justify-center items-center ${
+            className={`flex-1 bg-red-100/40 flex flex-col justify-center items-center font-mono ${
               dragging && "text-gray-400 bg-red-100"
             }`}
           >

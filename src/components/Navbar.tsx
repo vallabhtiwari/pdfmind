@@ -2,7 +2,7 @@
 
 import { pdfFileSchema } from "@/lib/zodSchemas";
 import { usePDFStore } from "@/store/pdfStrore";
-import { User } from "lucide-react";
+import { Upload, User } from "lucide-react";
 
 export function Navbar() {
   const { setPdf, setPdfName, uploading, setUploading } = usePDFStore();
@@ -19,13 +19,14 @@ export function Navbar() {
   };
   return (
     <nav className="flex justify-between items-center h-18 bg-amber-50">
-      <div className="w-1/2 p-4">PDFMind</div>
-      <div className="w-1/2 flex justify-end gap-72 p-4">
+      <div className="flex-1 p-2 text-2xl font-mono">PDFMind</div>
+      <div className="w-1/6 flex justify-end gap-32 p-4">
         <div className="flex justify-evenly items-center">
-          <label className="cursor-pointer bg-orange-400 hover:bg-orange-600 text-white text-xl font-semibold py-2 px-4 rounded-sm">
-            Upload
+          <label className="flex justify-evenly items-center gap-2 cursor-pointer bg-orange-400 hover:bg-orange-600 text-white text-xl font-semibold py-2 px-4 rounded-sm">
+            <Upload /> <span className="font-mono">Upload</span>
             <input
               type="file"
+              accept="application/pdf"
               className="hidden"
               onChange={handleFileChange}
               disabled={uploading}
