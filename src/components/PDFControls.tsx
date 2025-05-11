@@ -62,7 +62,7 @@ export function PDFControls() {
   return (
     <div className="bg-amber-50 flex justify-between items-center p-4 h-18 border-r border-gray-200">
       <div className="flex justify-evenly items-center gap-2">
-        <div className="cursor-pointer">
+        <div className="p-1 cursor-pointer hover:bg-gray-100 hover:border hover:border-gray-200 rounded-md">
           <ChevronUp onClick={goToPrevPage} />
         </div>
         <div>
@@ -78,16 +78,16 @@ export function PDFControls() {
         <div className="">
           <span>/ {numPages}</span>
         </div>
-        <div className="cursor-pointer">
+        <div className="p-1 cursor-pointer hover:bg-gray-100 hover:border hover:border-gray-200 rounded-md">
           <ChevronDown onClick={goToNextPage} />
         </div>
       </div>
       <div className="flex justify-evenly items-center gap-1">
-        <div className="cursor-pointer">
+        <div className="p-1 cursor-pointer hover:bg-gray-100 hover:border hover:border-gray-200 rounded-md">
           <ZoomOut onClick={zoomOut} />
         </div>
         <div className="relative">
-          <div className="flex justify-evenly cursor-pointer hover:bg-gray-50 p-1 hover:border hover:border-gray-200 rounded-md">
+          <div className="flex justify-evenly cursor-pointer hover:bg-gray-100 p-1 hover:border hover:border-gray-200 rounded-md">
             <div
               onClick={() => setShowZoomLevels((prev) => !prev)}
               className="flex justify-evenly items-center"
@@ -98,7 +98,7 @@ export function PDFControls() {
             {showZoomLevels && (
               <div
                 ref={dropDownRef}
-                className="absolute right-0 bottom-full mb-2 bg-white border border-gray-300 rounded shadow-md z-10"
+                className="absolute right-0 bottom-full mb-2 bg-white border border-gray-200 rounded shadow-md z-10"
               >
                 {zoomLevels.map((level) => (
                   <div
@@ -117,7 +117,7 @@ export function PDFControls() {
           </div>
         </div>
 
-        <div className="cursor-pointer">
+        <div className="p-1 cursor-pointer hover:bg-gray-100 hover:border hover:border-gray-200 rounded-md">
           <ZoomIn onClick={zoomIn} />
         </div>
       </div>
