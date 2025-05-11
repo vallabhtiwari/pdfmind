@@ -1,6 +1,6 @@
 "use client";
 import { pdfFileSchema } from "@/lib/zodSchemas";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
@@ -22,6 +22,7 @@ export function PDFView() {
     setPageNum,
     setUploading,
   } = usePDFStore();
+  const pageRefs = useRef<HTMLDivElement[]>([]);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -58,6 +59,13 @@ export function PDFView() {
       setPageNum(1);
     }
   }
+  useEffect(() => {
+    const pageIndex = pageNum - 1;
+    const pageElement = pageRefs.current[pageIndex];
+    if (pageElement) {
+      pageElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [pageNum]);
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col bg-red-100/40">
@@ -76,7 +84,14 @@ export function PDFView() {
               className="flex-1 overflow-auto flex flex-col items-center gap-10 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-red-100/40 min-w-fit"
             >
               {Array.from(new Array(numPages), (_, index) => (
-                <Page key={index + 1} pageNumber={index + 1} width={820} />
+                <div
+                  key={index}
+                  ref={(el) => {
+                    if (el) pageRefs.current[index] = el;
+                  }}
+                >
+                  <Page pageNumber={index + 1} width={820} />
+                </div>
               ))}
             </Document>
           </div>
