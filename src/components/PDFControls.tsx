@@ -9,6 +9,7 @@ export function PDFControls() {
   const [showZoomLevels, setShowZoomLevels] = useState(false);
   const zoomLevels = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
   const dropDownRef = useRef<HTMLDivElement>(null);
+  const toggleButtonRef = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -48,6 +49,8 @@ export function PDFControls() {
     function handleClickOutside(e: MouseEvent) {
       if (
         dropDownRef.current &&
+        toggleButtonRef.current &&
+        !toggleButtonRef.current.contains(e.target as Node) &&
         !dropDownRef.current.contains(e.target as Node)
       )
         setShowZoomLevels(false);
@@ -89,7 +92,10 @@ export function PDFControls() {
         <div className="relative">
           <div className="flex justify-evenly cursor-pointer hover:bg-gray-100 p-1 hover:border hover:border-gray-200 rounded-md">
             <div
-              onClick={() => setShowZoomLevels((prev) => !prev)}
+              ref={toggleButtonRef}
+              onClick={() => {
+                if (numPages) setShowZoomLevels((prev) => !prev);
+              }}
               className="flex justify-evenly items-center"
             >
               <span>{Math.round(zoom * 100)}%</span>
