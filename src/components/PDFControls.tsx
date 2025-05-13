@@ -4,8 +4,12 @@ import { ChevronDown, ChevronUp, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export function PDFControls() {
-  const { pageNum, numPages, setPageNum, zoom, setZoom } = usePDFStore();
-  const [inputValue, setInputValue] = useState("0");
+  const pageNum = usePDFStore((s) => s.pageNum);
+  const numPages = usePDFStore((s) => s.numPages);
+  const setPageNum = usePDFStore((s) => s.setPageNum);
+  const zoom = usePDFStore((s) => s.zoom);
+  const setZoom = usePDFStore((s) => s.setZoom);
+  const pageNumInput = usePDFStore((s) => s.pageNumInput);
   const [showZoomLevels, setShowZoomLevels] = useState(false);
   const zoomLevels = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
   const dropDownRef = useRef<HTMLDivElement>(null);

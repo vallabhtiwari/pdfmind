@@ -13,18 +13,19 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 export function PDFView() {
   const [dragging, setDragging] = useState(false);
-  const {
-    file,
-    fileName,
-    numPages,
-    pageNum,
-    zoom,
-    setPdf,
-    setPdfName,
-    setNumPages,
-    setPageNum,
-    setUploading,
-  } = usePDFStore();
+  const file = usePDFStore((s) => s.file);
+  const fileName = usePDFStore((s) => s.fileName);
+  const numPages = usePDFStore((s) => s.numPages);
+  const pageNum = usePDFStore((s) => s.pageNum);
+  const zoom = usePDFStore((s) => s.zoom);
+  const setPdf = usePDFStore((s) => s.setPdf);
+  const setPdfName = usePDFStore((s) => s.setPdfName);
+  const setNumPages = usePDFStore((s) => s.setNumPages);
+  const setPageNum = usePDFStore((s) => s.setPageNum);
+  const setUploading = usePDFStore((s) => s.setUploading);
+  const setPageNumberInput = usePDFStore((s) => s.setPageNumberInput);
+  const setZoom = usePDFStore((s) => s.setZoom);
+
   const listRef = useRef<List>(null);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
