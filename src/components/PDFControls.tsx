@@ -10,17 +10,18 @@ export function PDFControls() {
   const zoom = usePDFStore((s) => s.zoom);
   const setZoom = usePDFStore((s) => s.setZoom);
   const pageNumInput = usePDFStore((s) => s.pageNumInput);
+  const setPageNumberInput = usePDFStore((s) => s.setPageNumberInput);
   const [showZoomLevels, setShowZoomLevels] = useState(false);
   const zoomLevels = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
   const dropDownRef = useRef<HTMLDivElement>(null);
   const toggleButtonRef = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+    setPageNumberInput(e.target.value);
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      const parsedNum = pageNumSchema.safeParse(Number(inputValue));
+      const parsedNum = pageNumSchema.safeParse(Number(pageNumInput));
       if (parsedNum.success) {
         if (parsedNum.data <= numPages) setPageNum(parsedNum.data);
       }
@@ -28,15 +29,13 @@ export function PDFControls() {
   };
   const goToNextPage = () => {
     if (numPages > 0 && pageNum <= numPages) {
-      setPageNum(pageNum + 1);
-      setInputValue((pageNum + 1).toString());
+      setPageNum(parseInt(pageNumInput) + 1);
     }
   };
 
   const goToPrevPage = () => {
     if (numPages > 0 && pageNum > 1) {
-      setPageNum(pageNum - 1);
-      setInputValue((pageNum - 1).toString());
+      setPageNum(parseInt(pageNumInput) - 1);
     }
   };
 
@@ -48,7 +47,6 @@ export function PDFControls() {
     setZoom((prev) => Math.max(Math.round((prev - 0.1) * 10) / 10, 0.5));
   };
 
-  useEffect(() => setInputValue(pageNum.toString()), [pageNum]);
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -79,7 +77,7 @@ export function PDFControls() {
             style={{ width: `${Math.max(2, `${pageNum}`.length) + 1}ch` }}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            value={inputValue}
+            value={pageNumInput}
           />
         </div>
         <div className="">

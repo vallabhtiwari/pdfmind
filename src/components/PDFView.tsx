@@ -102,6 +102,10 @@ export function PDFView() {
                 itemSize={listHeight + 450 * zoom}
                 width={860}
                 ref={listRef}
+                onItemsRendered={({ visibleStartIndex }) =>
+                  setPageNumberInput((visibleStartIndex + 1).toString())
+                }
+                overscanCount={5}
                 className="scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-red-100/40"
               >
                 {({ index, style }) => (

@@ -8,6 +8,7 @@ export type PDFState = {
   pageNum: number;
   uploading: boolean;
   zoom: number;
+  pageNumInput: string;
 };
 export type PDFActions = {
   setPdf: (file: PDFFile) => void;
@@ -17,6 +18,7 @@ export type PDFActions = {
   setPageNum: (num: number) => void;
   setUploading: (uploading: boolean) => void;
   setZoom: (zoom: number | ((prev: number) => number)) => void;
+  setPageNumberInput: (input: string) => void;
 };
 
 export type PDFStore = PDFState & PDFActions;
@@ -28,6 +30,7 @@ export const usePDFStore = create<PDFStore>((set) => ({
   pageNum: 0,
   numPages: 0,
   zoom: 1.0,
+  pageNumInput: "0",
   setPdf: (file) => set({ file: file }),
   removePdf: (file) => set({ file: file }),
   setPdfName: (name) => set({ fileName: name }),
@@ -42,4 +45,5 @@ export const usePDFStore = create<PDFStore>((set) => ({
           }
         : state
     ),
+  setPageNumberInput: (input) => set({ pageNumInput: input }),
 }));
