@@ -82,6 +82,12 @@ export function PDFView() {
     listRef.current?.scrollToItem(pageNum - 1, "start");
   }, [pageNum]);
 
+  useEffect(() => {
+    if (file) {
+      setZoom(1);
+    }
+  }, [file]);
+
   return (
     <div className="flex-1 overflow-hidden flex flex-col bg-red-100/40">
       <div className="text-center p-4 bg-red-100/40 font-mono">
