@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
 import { FixedSizeList as List } from "react-window";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
@@ -116,7 +116,7 @@ export function PDFView() {
               >
                 {({ index, style }) => (
                   <div style={style}>
-                    <Page pageNumber={index + 1} width={840 * zoom} />
+                    <PDFPage pageNumber={index + 1} width={840 * zoom} />
                   </div>
                 )}
               </List>
@@ -137,3 +137,28 @@ export function PDFView() {
     </div>
   );
 }
+
+const PDFPage = memo(
+  ({ pageNumber, width }: { pageNumber: number; width?: number }) => {
+    const [showTextLayer, setShowTextLayer] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    useEffect(() => {
+      timeoutRef.current = setTimeout(() => {
+        setShowTextLayer(true);
+      }, 500);
+
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }, []);
+    return (
+      <Page
+        pageNumber={pageNumber}
+        width={width}
+        renderTextLayer={showTextLayer}
+      />
+    );
+  }
+);
