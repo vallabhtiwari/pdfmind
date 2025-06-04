@@ -2,17 +2,33 @@
 
 import { pdfFileSchema } from "@/lib/zodSchemas";
 import { usePDFStore } from "@/store/pdfStrore";
+import axios from "axios";
 import { Upload, User } from "lucide-react";
 
 export function Navbar() {
-  const { setPdf, setPdfName, uploading, setUploading } = usePDFStore();
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const setPdf = usePDFStore((s) => s.setPdf);
+  const setPdfName = usePDFStore((s) => s.setPdfName);
+  const uploading = usePDFStore((s) => s.uploading);
+  const setUploading = usePDFStore((s) => s.setUploading);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploading(true);
     if (e.target.files && e.target.files[0]) {
       const parsedFile = pdfFileSchema.safeParse({ file: e.target.files[0] });
       if (parsedFile.success) {
-        setPdf(parsedFile.data.file);
-        setPdfName(parsedFile.data.file.name);
+        const url = "/api/upload";
+        try {
+          const formData = new FormData();
+          formData.append("file", parsedFile.data.file);
+          const resp = await axios.request({
+            method: "POST",
+            url,
+            data: formData,
+          });
+          const data = await resp.data;
+          console.log(data);
+          setPdf(parsedFile.data.file);
+          setPdfName(parsedFile.data.file.name);
+        } catch {}
       }
     }
     setUploading(false);
