@@ -4,6 +4,18 @@ import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import { pdfFileSchema } from "@/lib/zodSchemas";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { Document } from "@langchain/core/documents";
+
+export const splitter = new RecursiveCharacterTextSplitter({
+  chunkSize: 500,
+  chunkOverlap: 50,
+});
+export const embedder = new OpenAIEmbeddings({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
@@ -19,9 +31,31 @@ export async function POST(req: NextRequest) {
   try {
     const loader = new PDFLoader(tempFilePath);
     const docs = await loader.load();
-    console.log(docs);
-    return NextResponse.json({ message: "Success", docs }, { status: 200 });
-  } catch {
+    const chunks = await splitter.splitDocuments(docs);
+    const vectors = await embedder.embedDocuments(
+      chunks.map((doc) => doc.pageContent)
+    );
+    const ids = chunks.map(() => randomUUID());
+    const vectorStore = await Chroma.fromExistingCollection(embedder, {
+      collectionName: "pdf-collection",
+      url: "http://localhost:8000",
+    });
+
+    const cleanedChunks = chunks.map((doc, index) => {
+      return new Document({
+        pageContent: doc.pageContent,
+        metadata: {
+          pageNumber: doc.metadata?.loc?.pageNumber,
+          source: doc.metadata?.source,
+          id: ids[index],
+        },
+      });
+    });
+    await vectorStore.addVectors(vectors, cleanedChunks, { ids });
+
+    return NextResponse.json({ message: "Success" }, { status: 200 });
+  } catch (error) {
+    console.log(error);
     return NextResponse.json({ error: "Failed to load PDF" }, { status: 400 });
   } finally {
     await fs.unlink(tempFilePath);
