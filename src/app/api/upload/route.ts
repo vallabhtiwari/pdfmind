@@ -4,18 +4,8 @@ import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import { pdfFileSchema } from "@/lib/zodSchemas";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { OpenAIEmbeddings } from "@langchain/openai";
-import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { Document } from "@langchain/core/documents";
-
-export const splitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 500,
-  chunkOverlap: 50,
-});
-export const embedder = new OpenAIEmbeddings({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { embedder, vectorStore, splitter } from "@/store/models";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
@@ -26,7 +16,8 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = Buffer.from(await parsedFile.data.file.arrayBuffer());
-  const tempFilePath = path.join("/tmp", `${randomUUID()}.pdf`);
+  const pdfID = randomUUID();
+  const tempFilePath = path.join("/tmp", `${pdfID}.pdf`);
   await fs.writeFile(tempFilePath, buffer);
   try {
     const loader = new PDFLoader(tempFilePath);
@@ -36,24 +27,19 @@ export async function POST(req: NextRequest) {
       chunks.map((doc) => doc.pageContent)
     );
     const ids = chunks.map(() => randomUUID());
-    const vectorStore = await Chroma.fromExistingCollection(embedder, {
-      collectionName: "pdf-collection",
-      url: "http://localhost:8000",
-    });
-
     const cleanedChunks = chunks.map((doc, index) => {
       return new Document({
         pageContent: doc.pageContent,
         metadata: {
           pageNumber: doc.metadata?.loc?.pageNumber,
-          source: doc.metadata?.source,
+          source: pdfID,
           id: ids[index],
         },
       });
     });
     await vectorStore.addVectors(vectors, cleanedChunks, { ids });
 
-    return NextResponse.json({ message: "Success" }, { status: 200 });
+    return NextResponse.json({ message: "Success", pdfID }, { status: 200 });
   } catch (error) {
     console.log(error);
     return NextResponse.json({ error: "Failed to load PDF" }, { status: 400 });
