@@ -16,6 +16,7 @@ export function Navbar() {
   const setChats = useChatStore((s) => s.setChats);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploading(true);
+    const fileInput = e.target;
     if (e.target.files && e.target.files[0]) {
       const parsedFile = pdfFileSchema.safeParse({ file: e.target.files[0] });
       if (parsedFile.success) {
@@ -48,6 +49,7 @@ export function Navbar() {
         }
       }
     }
+    fileInput.value = "";
     setUploading(false);
   };
   return (
