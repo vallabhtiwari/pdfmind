@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
-import { randomUUID } from "crypto";
+import { v4 as uuid4 } from "uuid";
 import { promises as fs } from "fs";
 import { pdfFileSchema } from "@/lib/zodSchemas";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = Buffer.from(await parsedFile.data.file.arrayBuffer());
-  const pdfID = randomUUID();
+  const pdfID = uuid4();
   const tempFilePath = path.join("/tmp", `${pdfID}.pdf`);
   await fs.writeFile(tempFilePath, buffer);
   try {
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const vectors = await embedder.embedDocuments(
       chunks.map((doc) => doc.pageContent)
     );
-    const ids = chunks.map(() => randomUUID());
+    const ids = chunks.map(() => uuid4());
     const cleanedChunks = chunks.map((doc, index) => {
       return new Document({
         pageContent: doc.pageContent,
