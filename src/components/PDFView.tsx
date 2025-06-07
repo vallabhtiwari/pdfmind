@@ -8,6 +8,9 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 import { PDFControls } from "./PDFControls";
 import { usePDFStore } from "@/store/pdfStrore";
 import { pdfFileSchema } from "@/lib/zodSchemas";
+import axios, { AxiosError } from "axios";
+import { useChatStore } from "@/store/chatStore";
+import { toast } from "sonner";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -25,6 +28,8 @@ export function PDFView() {
   const setUploading = usePDFStore((s) => s.setUploading);
   const setPageNumberInput = usePDFStore((s) => s.setPageNumberInput);
   const setZoom = usePDFStore((s) => s.setZoom);
+  const setPdfID = usePDFStore((s) => s.setPdfID);
+  const setChats = useChatStore((s) => s.setChats);
 
   const listRef = useRef<List>(null);
 
@@ -40,7 +45,7 @@ export function PDFView() {
       setDragging(false);
     }
   };
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     if (!file) {
       e.preventDefault();
       setDragging(false);
@@ -51,8 +56,34 @@ export function PDFView() {
           file: e.dataTransfer.files[0],
         });
         if (parsedFile.success) {
-          setPdf(parsedFile.data.file);
-          setPdfName(parsedFile.data.file.name);
+          const url = "/api/upload";
+          try {
+            const formData = new FormData();
+            formData.append("file", parsedFile.data.file);
+            const resp = await axios.request({
+              method: "POST",
+              url,
+              data: formData,
+            });
+            const data = await resp.data;
+            setPdfID(data.pdfID);
+            setPdf(parsedFile.data.file);
+            setPdfName(parsedFile.data.file.name);
+            setChats([]);
+          } catch (error) {
+            setPdfID("");
+            setPdf(null);
+            setPdfName("");
+            setChats([]);
+
+            let err = "Something went wrong. Please try again.";
+            if (error instanceof AxiosError) {
+              if (typeof error.response?.data.error === "string") {
+                err = error.response.data.error;
+              }
+            }
+            toast.error(err);
+          }
         }
       }
       setUploading(false);
