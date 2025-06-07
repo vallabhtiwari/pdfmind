@@ -6,6 +6,7 @@ import { pdfFileSchema } from "@/lib/zodSchemas";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { Document } from "@langchain/core/documents";
 import { embedder, vectorStore, splitter } from "@/store/models";
+import { countTotalTokens } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
@@ -22,6 +23,13 @@ export async function POST(req: NextRequest) {
   try {
     const loader = new PDFLoader(tempFilePath);
     const docs = await loader.load();
+    const totalTokenCount = countTotalTokens(docs);
+    const threshold = process.env.EMBEDDING_THRESHOLD || "40000";
+    if (totalTokenCount > parseInt(threshold))
+      return NextResponse.json(
+        { error: "Token count exceeded. Please try with a smaller pdf." },
+        { status: 400 }
+      );
     const chunks = await splitter.splitDocuments(docs);
     const vectors = await embedder.embedDocuments(
       chunks.map((doc) => doc.pageContent)

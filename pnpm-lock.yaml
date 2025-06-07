@@ -38,6 +38,9 @@ importers:
       chromadb-default-embed:
         specifier: ^2.14.0
         version: 2.14.0
+      js-tiktoken:
+        specifier: ^1.0.20
+        version: 1.0.20
       lucide-react:
         specifier: ^0.507.0
         version: 0.507.0(react@19.1.0)
