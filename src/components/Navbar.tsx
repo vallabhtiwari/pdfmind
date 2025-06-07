@@ -10,6 +10,7 @@ export function Navbar() {
   const setPdfName = usePDFStore((s) => s.setPdfName);
   const uploading = usePDFStore((s) => s.uploading);
   const setUploading = usePDFStore((s) => s.setUploading);
+  const setPdfID = usePDFStore((s) => s.setPdfID);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploading(true);
     if (e.target.files && e.target.files[0]) {
@@ -26,6 +27,7 @@ export function Navbar() {
           });
           const data = await resp.data;
           console.log(data);
+          setPdfID(data.pdfID);
           setPdf(parsedFile.data.file);
           setPdfName(parsedFile.data.file.name);
         } catch {}
