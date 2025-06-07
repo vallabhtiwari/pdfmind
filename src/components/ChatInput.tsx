@@ -5,16 +5,21 @@ import axios from "axios";
 import { v4 as uuid4 } from "uuid";
 import { Mic, Send } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function ChatInput() {
   const [messageText, setMessageText] = useState("");
+  const [chatting, setChatting] = useState(false);
+
   const pdfID = usePDFStore((s) => s.pdfID);
   const addChat = useChatStore((s) => s.addChat);
+  const removeChat = useChatStore((s) => s.removeChat);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setMessageText(e.target.value);
 
   const sendMessage = async (message: string) => {
+    if (chatting) return;
     setMessageText("");
     if (!message || message === "") return;
     const userMessage = {
@@ -33,6 +38,7 @@ export function ChatInput() {
     addChat(botMessage);
 
     try {
+      setChatting(true);
       const response = await fetch("/api/retrieve", {
         method: "POST",
         body: JSON.stringify({ query: message, pdfID }),
@@ -40,6 +46,12 @@ export function ChatInput() {
           "Content-Type": "application/json",
         },
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage =
+          errorData?.error || "Something went wrong. Please try again.";
+        throw new Error(errorMessage);
+      }
 
       if (!response.body) throw new Error("No response body");
 
@@ -61,6 +73,11 @@ export function ChatInput() {
         }));
       }
     } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
+      toast.error(message);
       console.error("Streaming error", err);
       useChatStore.setState((state) => ({
         chats: state.chats.map((chat) =>
@@ -72,6 +89,8 @@ export function ChatInput() {
             : chat
         ),
       }));
+    } finally {
+      setChatting(false);
     }
   };
   const handleKeyDown = (e: React.KeyboardEvent) => {

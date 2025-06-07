@@ -1,9 +1,11 @@
 "use client";
 
 import { pdfFileSchema } from "@/lib/zodSchemas";
+import { useChatStore } from "@/store/chatStore";
 import { usePDFStore } from "@/store/pdfStrore";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Upload, User } from "lucide-react";
+import { toast } from "sonner";
 
 export function Navbar() {
   const setPdf = usePDFStore((s) => s.setPdf);
@@ -11,6 +13,7 @@ export function Navbar() {
   const uploading = usePDFStore((s) => s.uploading);
   const setUploading = usePDFStore((s) => s.setUploading);
   const setPdfID = usePDFStore((s) => s.setPdfID);
+  const setChats = useChatStore((s) => s.setChats);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploading(true);
     if (e.target.files && e.target.files[0]) {
@@ -26,11 +29,23 @@ export function Navbar() {
             data: formData,
           });
           const data = await resp.data;
-          console.log(data);
           setPdfID(data.pdfID);
           setPdf(parsedFile.data.file);
           setPdfName(parsedFile.data.file.name);
-        } catch {}
+          setChats([]);
+        } catch (error) {
+          setPdfID("");
+          setPdf(null);
+          setPdfName("");
+          setChats([]);
+          let err = "Something went wrong. Please try again.";
+          if (error instanceof AxiosError) {
+            if (typeof error.response?.data.error === "string") {
+              err = error.response.data.error;
+            }
+          }
+          toast.error(err);
+        }
       }
     }
     setUploading(false);
