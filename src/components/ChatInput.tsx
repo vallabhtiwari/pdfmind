@@ -78,17 +78,7 @@ export function ChatInput() {
           ? err.message
           : "Something went wrong. Please try again.";
       toast.error(message);
-      console.error("Streaming error", err);
-      useChatStore.setState((state) => ({
-        chats: state.chats.map((chat) =>
-          chat.id === botMessage.id
-            ? {
-                ...chat,
-                message: "Sorry, something went wrong. Please try again.",
-              }
-            : chat
-        ),
-      }));
+      removeChat(botMessage.id);
     } finally {
       setChatting(false);
     }
