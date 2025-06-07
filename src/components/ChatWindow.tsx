@@ -9,7 +9,7 @@ export function ChatWindow() {
   const messageEndRef = useRef<HTMLDivElement>(null);
   useEffect(
     () => messageEndRef.current?.scrollIntoView({ behavior: "smooth" }),
-    [chats.length]
+    [chats.at(-1)?.message]
   );
   return (
     <div className="flex-1 overflow-hidden flex flex-col bg-green-100/40">
@@ -26,7 +26,7 @@ export function ChatWindow() {
                 <div className="flex justify-evenly items-center gap-2">
                   {chat.from === "bot" && <BotMessageSquare />}
                   <span
-                    className={`p-3 rounded-lg border border-gray-200 ${
+                    className={`p-3 rounded-lg border border-gray-200 max-w-xl ${
                       chat.from === "bot" ? "bg-gray-50" : "bg-green-100/40"
                     }`}
                   >
