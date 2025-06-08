@@ -14,3 +14,11 @@ export type ChatsType = Message[];
 export type VoiceMessageProps = {
   blob: Blob;
 };
+
+export type UserLimits = {
+  dailyCount: number;
+  monthlyCount: number;
+  totalCount: number;
+  dailyLimit: number;
+  monthlyLimit: number;
+};
