@@ -6,6 +6,11 @@ export type Message = {
   id: string;
   message: string;
   from: MessageFrom;
+  audioBlob?: Blob;
 };
 
 export type ChatsType = Message[];
+
+export type VoiceMessageProps = {
+  blob: Blob;
+};
