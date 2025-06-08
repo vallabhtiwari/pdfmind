@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { ChatInput } from "./ChatInput";
 import { BotMessageSquare, User } from "lucide-react";
 import { useChatStore } from "@/store/chatStore";
+import { VoiceMessage } from "./VoiceMessage";
 
 export function ChatWindow() {
   const chats = useChatStore((s) => s.chats);
@@ -25,13 +26,18 @@ export function ChatWindow() {
               >
                 <div className="flex justify-evenly items-center gap-2">
                   {chat.from === "bot" && <BotMessageSquare />}
-                  <span
-                    className={`p-3 rounded-lg border border-gray-200 max-w-xl ${
-                      chat.from === "bot" ? "bg-gray-50" : "bg-green-100/40"
-                    }`}
-                  >
-                    {chat.message}
-                  </span>
+
+                  {chat.audioBlob ? (
+                    <VoiceMessage blob={chat.audioBlob} />
+                  ) : (
+                    <span
+                      className={`p-3 rounded-lg border border-gray-200 max-w-xl ${
+                        chat.from === "bot" ? "bg-gray-50" : "bg-green-100/40"
+                      }`}
+                    >
+                      {chat.message}
+                    </span>
+                  )}
                   {chat.from === "user" && <User />}
                 </div>
               </div>
