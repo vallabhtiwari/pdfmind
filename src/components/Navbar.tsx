@@ -55,9 +55,11 @@ export function Navbar() {
   };
   return (
     <nav className="flex justify-between items-center h-18 bg-amber-50">
-      <Link className="flex-1 p-2 text-2xl font-mono" href="/">
-        PDFMind
-      </Link>
+      <div className="flex-1">
+        <Link className="p-2 text-2xl font-bold font-mono" href="/">
+          PDFMind
+        </Link>
+      </div>
       <div className="w-1/6 flex justify-end gap-32 p-4">
         <div className="flex justify-evenly items-center">
           <label className="flex justify-evenly items-center gap-2 cursor-pointer bg-orange-400 hover:bg-orange-600 text-white text-xl font-semibold py-2 px-4 rounded-sm">
@@ -71,9 +73,12 @@ export function Navbar() {
             />
           </label>
         </div>
-        <div className="cursor-pointer flex justify-evenly items-center">
+        <Link
+          className="cursor-pointer flex justify-evenly items-center"
+          href="/profile"
+        >
           <User className="size-10 hover:text-orange-600" />
-        </div>
+        </Link>
       </div>
     </nav>
   );
