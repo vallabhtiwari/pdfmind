@@ -88,13 +88,21 @@ export function ChatInput() {
         const { done, value } = await reader.read();
         if (done) break;
 
-        accumulated += decoder.decode(value);
+        const chunk = decoder.decode(value);
 
-        useChatStore.setState((state) => ({
-          chats: state.chats.map((chat) =>
-            chat.id === botMessage.id ? { ...chat, message: accumulated } : chat
-          ),
-        }));
+        for (const char of chunk) {
+          accumulated += char;
+
+          useChatStore.setState((state) => ({
+            chats: state.chats.map((chat) =>
+              chat.id === botMessage.id
+                ? { ...chat, message: accumulated }
+                : chat
+            ),
+          }));
+
+          await new Promise((res) => setTimeout(res, 15));
+        }
       }
     } catch (err) {
       const errorMsg =
