@@ -78,7 +78,6 @@ export function VoiceMessage({ blob }: VoiceMessageProps) {
   }, [dragging]);
 
   useEffect(() => {
-    console.log(blob.size, blob.type);
     const audio = new Audio(URL.createObjectURL(blob));
     audioRef.current = audio;
     const onTimeUpdate = () => setCurrentTime(audio.currentTime);

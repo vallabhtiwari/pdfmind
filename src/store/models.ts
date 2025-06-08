@@ -9,6 +9,7 @@ export const splitter = new RecursiveCharacterTextSplitter({
 });
 export const embedder = new OpenAIEmbeddings({
   apiKey: process.env.OPENAI_API_KEY,
+  model: process.env.EMBEDDING_MODEL,
 });
 
 export const vectorStore = new Chroma(embedder, {

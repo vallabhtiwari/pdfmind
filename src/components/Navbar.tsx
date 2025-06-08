@@ -5,6 +5,7 @@ import { useChatStore } from "@/store/chatStore";
 import { usePDFStore } from "@/store/pdfStrore";
 import axios, { AxiosError } from "axios";
 import { Upload, User } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 export function Navbar() {
@@ -54,7 +55,9 @@ export function Navbar() {
   };
   return (
     <nav className="flex justify-between items-center h-18 bg-amber-50">
-      <div className="flex-1 p-2 text-2xl font-mono">PDFMind</div>
+      <Link className="flex-1 p-2 text-2xl font-mono" href="/">
+        PDFMind
+      </Link>
       <div className="w-1/6 flex justify-end gap-32 p-4">
         <div className="flex justify-evenly items-center">
           <label className="flex justify-evenly items-center gap-2 cursor-pointer bg-orange-400 hover:bg-orange-600 text-white text-xl font-semibold py-2 px-4 rounded-sm">
