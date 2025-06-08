@@ -1,9 +1,8 @@
-import { MessageFrom } from "@/lib/types";
 import { useChatStore } from "@/store/chatStore";
 import { usePDFStore } from "@/store/pdfStrore";
 import { v4 as uuid4 } from "uuid";
 import { Mic, Send } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 export function ChatInput() {
@@ -94,28 +93,30 @@ export function ChatInput() {
     }
   };
 
-  let mediaRecorder: MediaRecorder | null = null;
-  let stream: MediaStream | null = null;
-  let audioChunks: Blob[] = [];
-  let isRecording = false;
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioChunks = useRef<Blob[]>([]);
   // let silenceTimeout: ReturnType<typeof setTimeout>;
   const handleMicClick = async () => {
     if (isRecording) {
       stopRecording();
       return;
     }
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream, {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
+    const mediaRecorder = new MediaRecorder(stream, {
       mimeType: "audio/webm;codecs=opus",
     });
-    audioChunks = [];
-    isRecording = true;
+    mediaRecorderRef.current = mediaRecorder;
+    audioChunks.current = [];
+    setIsRecording(true);
 
-    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+    mediaRecorder.ondataavailable = (e) => audioChunks.current.push(e.data);
     mediaRecorder.onstop = async () => {
-      const blob = new Blob(audioChunks, { type: "audio/webm" });
-      stream?.getTracks().forEach((track) => track.stop());
-      stream = null;
+      const blob = new Blob(audioChunks.current, { type: "audio/webm" });
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
       const userMessage = {
         id: uuid4(),
         message: "",
@@ -129,16 +130,28 @@ export function ChatInput() {
     // add 10s auto stop
   };
   const stopRecording = async () => {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop();
-      isRecording = false;
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 
   return (
     <div className="bg-amber-50 flex justify-evenly items-center p-4 gap-4 h-18">
-      <div className="p-1 cursor-pointer hover:bg-gray-100 hover:border hover:border-gray-200 rounded-md">
-        <Mic onClick={handleMicClick} />
+      <div
+        className={`p-1 cursor-pointer rounded-md hover:bg-gray-100 hover:border hover:border-gray-200 ${
+          isRecording
+            ? "bg-red-100 ring-2 ring-red-400 animate-pulse shadow-lg"
+            : ""
+        }`}
+      >
+        <Mic
+          onClick={handleMicClick}
+          className={isRecording ? "text-red-600" : ""}
+        />
       </div>
       <div className="flex-1">
         <textarea
