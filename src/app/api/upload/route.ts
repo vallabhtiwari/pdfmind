@@ -9,11 +9,39 @@ import { embedder, vectorStore, splitter } from "@/store/models";
 import { countTotalTokens } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import prisma from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const limits = await prisma.userLimits.findUnique({
+    where: {
+      userEmail: session.user.email,
+    },
+    select: {
+      dailyCount: true,
+      monthlyCount: true,
+    },
+  });
+  if (!limits) {
+    return NextResponse.json(
+      { error: "Invalid request. Please try again." },
+      { status: 400 }
+    );
+  }
+  if (limits.monthlyCount >= parseInt(process.env.MONTHLY_LIMIT || "5")) {
+    return NextResponse.json(
+      { error: "Monthly rate limit exceeded." },
+      { status: 429 }
+    );
+  }
+  if (limits.dailyCount >= parseInt(process.env.DAILY_LIMIT || "1")) {
+    return NextResponse.json(
+      { error: "Daily rate limit exceeded." },
+      { status: 429 }
+    );
   }
   const formData = await req.formData();
   const file = formData.get("file") as File;
@@ -52,6 +80,16 @@ export async function POST(req: NextRequest) {
       });
     });
     await vectorStore.addVectors(vectors, cleanedChunks, { ids });
+    await prisma.userLimits.update({
+      where: {
+        userEmail: session.user?.email,
+      },
+      data: {
+        dailyCount: { increment: 1 },
+        monthlyCount: { increment: 1 },
+        totalCount: { increment: 1 },
+      },
+    });
 
     return NextResponse.json({ message: "Success", pdfID }, { status: 200 });
   } catch (error) {
