@@ -11,10 +11,14 @@ import { pdfFileSchema } from "@/lib/zodSchemas";
 import axios, { AxiosError } from "axios";
 import { useChatStore } from "@/store/chatStore";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export function PDFView() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [dragging, setDragging] = useState(false);
   const file = usePDFStore((s) => s.file);
   const fileName = usePDFStore((s) => s.fileName);
@@ -46,6 +50,10 @@ export function PDFView() {
     }
   };
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    if (!session) {
+      router.push("/auth");
+      return;
+    }
     if (!file) {
       e.preventDefault();
       setDragging(false);

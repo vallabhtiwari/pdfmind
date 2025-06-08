@@ -5,10 +5,14 @@ import { useChatStore } from "@/store/chatStore";
 import { usePDFStore } from "@/store/pdfStrore";
 import axios, { AxiosError } from "axios";
 import { Upload, User } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export function Navbar() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const setPdf = usePDFStore((s) => s.setPdf);
   const setPdfName = usePDFStore((s) => s.setPdfName);
   const uploading = usePDFStore((s) => s.uploading);
@@ -16,6 +20,10 @@ export function Navbar() {
   const setPdfID = usePDFStore((s) => s.setPdfID);
   const setChats = useChatStore((s) => s.setChats);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!session) {
+      router.push("/auth");
+      return;
+    }
     setUploading(true);
     const fileInput = e.target;
     if (e.target.files && e.target.files[0]) {
@@ -75,7 +83,7 @@ export function Navbar() {
         </div>
         <Link
           className="cursor-pointer flex justify-evenly items-center"
-          href="/profile"
+          href="/auth"
         >
           <User className="size-10 hover:text-orange-600" />
         </Link>
