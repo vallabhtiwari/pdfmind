@@ -9,53 +9,76 @@ export function ChatInput() {
   const [messageText, setMessageText] = useState("");
   const [chatting, setChatting] = useState(false);
 
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioChunks = useRef<Blob[]>([]);
+  // let silenceTimeout: ReturnType<typeof setTimeout>;
+
   const pdfID = usePDFStore((s) => s.pdfID);
   const addChat = useChatStore((s) => s.addChat);
   const removeChat = useChatStore((s) => s.removeChat);
 
+  //--------------------------------------------------------------
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setMessageText(e.target.value);
 
-  const sendMessage = async (message: string) => {
-    if (!pdfID) {
-      toast.error("Please upload a pdf to start chatting.");
-      return;
-    }
-    if (chatting) return;
-    setMessageText("");
-    if (!message || message === "") return;
+  // common function to get response for both text and voice messages
+  const getResponseFromServer = async (options: {
+    message?: string;
+    blob?: Blob;
+  }) => {
+    const { message, blob } = options;
+    if (!message && !blob) return;
+
     const userMessage = {
       id: uuid4(),
-      message: message,
+      message: message || "",
       from: "user" as const,
+      audioBlob: blob,
     };
-    addChat(userMessage);
 
-    // Add initial empty bot message
     const botMessage = {
       id: uuid4(),
       message: "",
       from: "bot" as const,
     };
-    addChat(botMessage);
 
-    try {
-      setChatting(true);
-      const response = await fetch("/api/retrieve", {
+    addChat(userMessage);
+    addChat(botMessage);
+    setChatting(true);
+
+    let requestInit: RequestInit;
+    let url: string;
+
+    if (blob) {
+      const formData = new FormData();
+      formData.append("file", blob, "message.webm");
+      formData.append("pdfID", pdfID!);
+      requestInit = {
+        method: "POST",
+        body: formData,
+      };
+      url = "/api/retrieve/voice";
+    } else {
+      requestInit = {
         method: "POST",
         body: JSON.stringify({ query: message, pdfID }),
         headers: {
           "Content-Type": "application/json",
         },
-      });
-      if (!response.ok) {
+      };
+      url = "/api/retrieve";
+    }
+
+    try {
+      const response = await fetch(url, requestInit);
+      if (!response.ok || !response.body) {
         const errorData = await response.json();
         const errorMessage =
           errorData?.error || "Something went wrong. Please try again.";
         throw new Error(errorMessage);
       }
-
-      if (!response.body) throw new Error("No response body");
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -65,8 +88,7 @@ export function ChatInput() {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        accumulated += chunk;
+        accumulated += decoder.decode(value);
 
         useChatStore.setState((state) => ({
           chats: state.chats.map((chat) =>
@@ -75,15 +97,27 @@ export function ChatInput() {
         }));
       }
     } catch (err) {
-      const message =
+      const errorMsg =
         err instanceof Error
           ? err.message
           : "Something went wrong. Please try again.";
-      toast.error(message);
+      toast.error(errorMsg);
       removeChat(botMessage.id);
     } finally {
       setChatting(false);
     }
+  };
+  //--------------------------------------------------------------
+  // handler for text messages
+  const sendMessage = async (message: string) => {
+    if (!pdfID) {
+      toast.error("Please upload a pdf to start chatting.");
+      return;
+    }
+    if (chatting) return;
+    setMessageText("");
+    if (!message || message === "") return;
+    await getResponseFromServer({ message });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -92,12 +126,8 @@ export function ChatInput() {
       sendMessage(messageText);
     }
   };
-
-  const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const audioChunks = useRef<Blob[]>([]);
-  // let silenceTimeout: ReturnType<typeof setTimeout>;
+  //--------------------------------------------------------------
+  // handler for voice messages
   const handleMicClick = async () => {
     if (!pdfID) {
       toast.error("Please upload a pdf to start chatting.");
@@ -121,69 +151,10 @@ export function ChatInput() {
       const blob = new Blob(audioChunks.current, { type: "audio/webm" });
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
-      const userMessage = {
-        id: uuid4(),
-        message: "",
-        from: "user" as const,
-        audioBlob: blob,
-      };
-      addChat(userMessage);
-      // Add initial empty bot message
-      const botMessage = {
-        id: uuid4(),
-        message: "",
-        from: "bot" as const,
-      };
-      addChat(botMessage);
-      try {
-        setChatting(true);
-        const formData = new FormData();
-        formData.append("file", blob, "message.webm");
-        formData.append("pdfID", pdfID);
-
-        const response = await fetch("/api/retrieve/voice", {
-          method: "POST",
-          body: formData,
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          const errorMessage =
-            errorData?.error || "Something went wrong. Please try again.";
-          throw new Error(errorMessage);
-        }
-
-        if (!response.body) throw new Error("No response body");
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let accumulated = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          accumulated += chunk;
-
-          useChatStore.setState((state) => ({
-            chats: state.chats.map((chat) =>
-              chat.id === botMessage.id
-                ? { ...chat, message: accumulated }
-                : chat
-            ),
-          }));
-        }
-      } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Something went wrong. Please try again.";
-        toast.error(message);
-        removeChat(botMessage.id);
-      } finally {
-        setChatting(false);
-      }
+      if (!(blob instanceof Blob) || blob.size === 0) return;
+      await getResponseFromServer({ blob });
     };
+
     mediaRecorder.start();
     // add 10s auto stop
   };
@@ -196,7 +167,7 @@ export function ChatInput() {
       setIsRecording(false);
     }
   };
-
+  //--------------------------------------------------------------
   return (
     <div className="bg-amber-50 flex justify-evenly items-center p-4 gap-4 h-18">
       <div
