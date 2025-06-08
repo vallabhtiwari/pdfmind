@@ -4,8 +4,14 @@ import { v4 as uuid4 } from "uuid";
 import { promises as fs } from "fs";
 import { OpenAIWhisperAudio } from "@langchain/community/document_loaders/fs/openai_whisper_audio";
 import { ai, vectorStore } from "@/store/models";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   let tempPath;
   try {
     const formData = await req.formData();
