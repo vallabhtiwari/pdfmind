@@ -99,6 +99,10 @@ export function ChatInput() {
   const audioChunks = useRef<Blob[]>([]);
   // let silenceTimeout: ReturnType<typeof setTimeout>;
   const handleMicClick = async () => {
+    if (!pdfID) {
+      toast.error("Please upload a pdf to start chatting.");
+      return;
+    }
     if (isRecording) {
       stopRecording();
       return;
@@ -124,7 +128,61 @@ export function ChatInput() {
         audioBlob: blob,
       };
       addChat(userMessage);
-      // send data to server and add bot message
+      // Add initial empty bot message
+      const botMessage = {
+        id: uuid4(),
+        message: "",
+        from: "bot" as const,
+      };
+      addChat(botMessage);
+      try {
+        setChatting(true);
+        const formData = new FormData();
+        formData.append("file", blob, "message.webm");
+        formData.append("pdfID", pdfID);
+
+        const response = await fetch("/api/retrieve/voice", {
+          method: "POST",
+          body: formData,
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorMessage =
+            errorData?.error || "Something went wrong. Please try again.";
+          throw new Error(errorMessage);
+        }
+
+        if (!response.body) throw new Error("No response body");
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          accumulated += chunk;
+
+          useChatStore.setState((state) => ({
+            chats: state.chats.map((chat) =>
+              chat.id === botMessage.id
+                ? { ...chat, message: accumulated }
+                : chat
+            ),
+          }));
+        }
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Something went wrong. Please try again.";
+        toast.error(message);
+        removeChat(botMessage.id);
+      } finally {
+        setChatting(false);
+      }
     };
     mediaRecorder.start();
     // add 10s auto stop
