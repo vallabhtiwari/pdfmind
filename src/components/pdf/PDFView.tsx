@@ -13,6 +13,7 @@ import { useChatStore } from "@/store/chatStore";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { fetchLimits } from "@/utils/client";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -53,6 +54,17 @@ export function PDFView() {
     if (!session) {
       router.push("/auth");
       return;
+    }
+    const limitsUrl = "/api/user/limits";
+    const { error, limits } = await fetchLimits(limitsUrl);
+    if (limits) {
+      if (
+        limits?.monthlyCount >= limits?.monthlyLimit ||
+        limits?.dailyCount >= limits?.dailyLimit
+      ) {
+        toast.error("Rate limit exceeded. Please try again later.");
+        return;
+      }
     }
     if (!file) {
       e.preventDefault();

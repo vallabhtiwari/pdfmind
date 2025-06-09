@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { PDFView } from "@/components/PDFView";
-import { ChatWindow } from "@/components/ChatWindow";
+import { PDFView } from "@/components/pdf/PDFView";
+import { ChatWindow } from "@/components/chat/ChatWindow";
 import { Navbar } from "@/components/Navbar";
 export default function HomePage() {
   return (

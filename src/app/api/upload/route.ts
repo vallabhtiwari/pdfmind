@@ -6,10 +6,10 @@ import { pdfFileSchema } from "@/lib/zodSchemas";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { Document } from "@langchain/core/documents";
 import { embedder, vectorStore, splitter } from "@/store/models";
-import { countTotalTokens } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/db";
+import { countTotalTokens } from "@/utils/server";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);

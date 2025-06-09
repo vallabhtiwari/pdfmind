@@ -1,8 +1,10 @@
 "use client";
 
+import { UserLimits } from "@/lib/types";
 import { pdfFileSchema } from "@/lib/zodSchemas";
 import { useChatStore } from "@/store/chatStore";
 import { usePDFStore } from "@/store/pdfStrore";
+import { fetchLimits } from "@/utils/client";
 import axios, { AxiosError } from "axios";
 import { Upload, User } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -23,6 +25,17 @@ export function Navbar() {
     if (!session) {
       router.push("/auth");
       return;
+    }
+    const limitsUrl = "/api/user/limits";
+    const { error, limits } = await fetchLimits(limitsUrl);
+    if (limits) {
+      if (
+        limits?.monthlyCount >= limits?.monthlyLimit ||
+        limits?.dailyCount >= limits?.dailyLimit
+      ) {
+        toast.error("Rate limit exceeded. Please try again later.");
+        return;
+      }
     }
     setUploading(true);
     const fileInput = e.target;

@@ -1,6 +1,6 @@
 "use client";
 import { UserLimits } from "@/lib/types";
-import axios, { AxiosError } from "axios";
+import { fetchLimits } from "@/utils/client";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -16,26 +16,12 @@ export default function Profile() {
 
   useEffect(() => {
     if (!session) return;
-    const fetchLimits = async () => {
-      const url = "/api/user/limits";
-      try {
-        const response = await axios.request({
-          method: "GET",
-          url,
-        });
-        const limits = response.data;
-        setLimits(limits);
-      } catch (error) {
-        let err = "Something went wrong. Please try again.";
-        if (error instanceof AxiosError) {
-          if (typeof error.response?.data.error === "string") {
-            err = error.response.data.error;
-          }
-        }
-        toast.error(err);
-      }
-    };
-    fetchLimits();
+    const url = "/api/user/limits";
+    (async () => {
+      const { limits: userLimits, error } = await fetchLimits(url);
+      if (userLimits) setLimits(userLimits);
+      if (error) toast.error(error);
+    })();
   }, [session]);
 
   return (
