@@ -122,7 +122,7 @@ export function ChatInput() {
       toast.error("Please upload a pdf to start chatting.");
       return;
     }
-    if (chatting) return;
+    if (chatting || isRecording) return;
     setMessageText("");
     if (!message || message === "") return;
     await getResponseFromServer({ message });
@@ -197,6 +197,7 @@ export function ChatInput() {
           value={messageText}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          disabled={isRecording}
         />
       </div>
       <div className="p-1 cursor-pointer hover:bg-gray-100 hover:border hover:border-gray-200 rounded-md">
