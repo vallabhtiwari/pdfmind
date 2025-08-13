@@ -26,7 +26,7 @@ function AuthContent() {
 
   return (
     <div className="flex flex-col items-center justify-center mt-16 text-center">
-      <div className="bg-white shadow-md rounded-xl p-8 w-108 h-78 border border-red-100/40 flex flex-col justify-between">
+      <div className="bg-white shadow-md rounded-xl p-8 w-2xl h-78 border border-red-100/40 flex flex-col justify-between">
         {session ? (
           <>
             <p className="text-2xl text-gray-800">
