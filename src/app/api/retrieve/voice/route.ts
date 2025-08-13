@@ -3,7 +3,7 @@ import path from "path";
 import { v4 as uuid4 } from "uuid";
 import { promises as fs } from "fs";
 import { OpenAIWhisperAudio } from "@langchain/community/document_loaders/fs/openai_whisper_audio";
-import { ai, vectorStore } from "@/store/models";
+import { ai, client, embedder } from "@/store/models";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
@@ -28,10 +28,20 @@ export async function POST(req: NextRequest) {
     const docs = await transcriber.load();
     const transcript = docs[0].pageContent;
 
-    const searchedResults = await vectorStore.similaritySearch(transcript, 4, {
-      source: pdfID,
+    const vectorStore = await client.getOrCreateCollection({
+      name: "pdfCollection",
     });
-    const rawText = searchedResults.map((doc) => doc.pageContent).join("\n\n");
+    const vectors = await embedder.embedDocuments([transcript]);
+    const searchedResults = await vectorStore.query({
+      queryEmbeddings: vectors,
+      nResults: 4,
+      where: {
+        source: pdfID,
+      },
+    });
+    const rawText = searchedResults.documents.reduce((acc, doc) => {
+      return acc + doc + "\n\n";
+    }, "");
 
     const prompt = `
 You are an expert assistant. A user asked: "${transcript}".
