@@ -1,4 +1,4 @@
-import { ai, vectorStore } from "@/store/models";
+import { ai, client, embedder } from "@/store/models";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -13,10 +13,21 @@ export async function POST(req: NextRequest) {
     if (!query || !pdfID) {
       return NextResponse.json({ error: "Invalid query!" }, { status: 400 });
     }
-    const searchedResults = await vectorStore.similaritySearch(query, 4, {
-      source: pdfID,
+    const vectorStore = await client.getOrCreateCollection({
+      name: "pdfCollection",
     });
-    const rawText = searchedResults.map((doc) => doc.pageContent).join("\n\n");
+    const vectors = await embedder.embedDocuments([query]);
+
+    const searchedResults = await vectorStore.query({
+      queryEmbeddings: vectors,
+      nResults: 4,
+      where: {
+        source: pdfID,
+      },
+    });
+    const rawText = searchedResults.documents.reduce((acc, doc) => {
+      return acc + doc + "\n\n";
+    }, "");
 
     const prompt = `
 You are an expert assistant. A user asked: "${query}".

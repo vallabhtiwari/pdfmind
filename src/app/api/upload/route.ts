@@ -5,7 +5,7 @@ import { promises as fs } from "fs";
 import { pdfFileSchema } from "@/lib/zodSchemas";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { Document } from "@langchain/core/documents";
-import { embedder, vectorStore, splitter } from "@/store/models";
+import { embedder, splitter, client } from "@/store/models";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/db";
@@ -79,7 +79,15 @@ export async function POST(req: NextRequest) {
         },
       });
     });
-    await vectorStore.addVectors(vectors, cleanedChunks, { ids });
+    const vectorStore = await client.getOrCreateCollection({
+      name: "pdfCollection",
+    });
+    await vectorStore.add({
+      ids: ids,
+      embeddings: vectors,
+      documents: cleanedChunks.map((doc) => doc.pageContent),
+      metadatas: cleanedChunks.map((doc) => doc.metadata),
+    });
     await prisma.userLimits.update({
       where: {
         userEmail: session.user?.email,
