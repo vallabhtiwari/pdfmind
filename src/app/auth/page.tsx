@@ -9,7 +9,7 @@ import { useEffect, Suspense } from "react";
 import { toast } from "sonner";
 
 function AuthContent() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
@@ -31,6 +31,19 @@ function AuthContent() {
       })();
     }
   }, [session, limits]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex flex-col items-center justify-center mt-16 text-center">
+        <div className="bg-white shadow-md rounded-xl p-8 w-2xl h-78 border border-red-100/40 flex flex-col justify-center">
+          <div className="animate-pulse">
+            <div className="h-20 bg-gray-200 rounded w-full mb-4"></div>
+            <div className="h-8 bg-gray-200 rounded w-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center mt-16 text-center">
