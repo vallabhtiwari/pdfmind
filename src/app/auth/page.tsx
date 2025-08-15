@@ -1,10 +1,11 @@
 "use client";
-import { UserLimits } from "@/lib/types";
+import { useUserStore } from "@/store/userStore";
 import { fetchLimits } from "@/utils/client";
+import { LoaderCircle } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import { toast } from "sonner";
 
 function AuthContent() {
@@ -12,17 +13,24 @@ function AuthContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
-  const [limits, setLimits] = useState<UserLimits | null>(null);
+  const setLimits = useUserStore((s) => s.setLimits);
+  const limits = useUserStore((s) => s.limits);
+  const resetLimits = useUserStore((s) => s.resetLimits);
 
   useEffect(() => {
-    if (!session) return;
-    const url = "/api/user/limits";
-    (async () => {
-      const { limits: userLimits, error } = await fetchLimits(url);
-      if (userLimits) setLimits(userLimits);
-      if (error) toast.error(error);
-    })();
-  }, [session]);
+    if (!session) {
+      resetLimits();
+      return;
+    }
+    if (!limits) {
+      const url = "/api/user/limits";
+      (async () => {
+        const { limits: userLimits, error } = await fetchLimits(url);
+        if (userLimits) setLimits(userLimits);
+        if (error) toast.error(error);
+      })();
+    }
+  }, [session, limits]);
 
   return (
     <div className="flex flex-col items-center justify-center mt-16 text-center">
@@ -36,7 +44,11 @@ function AuthContent() {
                 {session.user?.email}
               </span>
             </p>
-            {limits && (
+            {!limits ? (
+              <div className="flex justify-center items-center mt-4">
+                <LoaderCircle className="w-10 h-10 animate-spin" />
+              </div>
+            ) : (
               <div className="mt-4 text-gray-700 mx-auto space-y-2">
                 <div className="flex justify-between w-64">
                   <span>📄 Daily uploads</span>

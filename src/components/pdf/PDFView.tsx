@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { fetchLimits } from "@/utils/client";
+import { useUserStore } from "@/store/userStore";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -35,7 +36,7 @@ export function PDFView() {
   const setZoom = usePDFStore((s) => s.setZoom);
   const setPdfID = usePDFStore((s) => s.setPdfID);
   const setChats = useChatStore((s) => s.setChats);
-
+  const incrementLimits = useUserStore((s) => s.incrementLimits);
   const listRef = useRef<List>(null);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -108,6 +109,7 @@ export function PDFView() {
       }
       setUploading(false);
     }
+    incrementLimits();
   };
 
   function onDocumentLoadSuccess({

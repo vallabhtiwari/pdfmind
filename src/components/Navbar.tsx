@@ -4,6 +4,7 @@ import { UserLimits } from "@/lib/types";
 import { pdfFileSchema } from "@/lib/zodSchemas";
 import { useChatStore } from "@/store/chatStore";
 import { usePDFStore } from "@/store/pdfStrore";
+import { useUserStore } from "@/store/userStore";
 import { fetchLimits } from "@/utils/client";
 import axios, { AxiosError } from "axios";
 import { Upload, User } from "lucide-react";
@@ -21,6 +22,7 @@ export function Navbar() {
   const setUploading = usePDFStore((s) => s.setUploading);
   const setPdfID = usePDFStore((s) => s.setPdfID);
   const setChats = useChatStore((s) => s.setChats);
+  const incrementLimits = useUserStore((s) => s.incrementLimits);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!session) {
       router.push("/auth");
@@ -73,6 +75,7 @@ export function Navbar() {
     }
     fileInput.value = "";
     setUploading(false);
+    incrementLimits();
   };
   return (
     <nav className="flex justify-between items-center h-18 bg-amber-50">
